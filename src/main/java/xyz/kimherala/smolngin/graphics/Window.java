@@ -126,6 +126,7 @@ public class Window {
                 GL11.glEnable(GL11.GL_BLEND);
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 textRenderer.render("Fontin-Regular","Hello, World!", 20,100, 100);
+                textRenderer.render("Fontin-Regular","Hello, World!", 12,200, 200);
                 GL11.glEnable(GL11.GL_BLEND);
 
                 glfwSwapBuffers(this.window); // swap the color buffers
@@ -137,6 +138,8 @@ public class Window {
     }
 
     public void cleanup() {
+        textRenderer.cleanup();
+
         // Free the window callbacks and destroy the window
         glfwFreeCallbacks(this.window);
         glfwDestroyWindow(this.window);

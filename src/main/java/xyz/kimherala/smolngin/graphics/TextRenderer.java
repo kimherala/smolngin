@@ -30,6 +30,11 @@ public class TextRenderer {
         fontCache = new FontCache();
     }
 
+    public void cleanup() {
+        shaderProgram.cleanup();
+        fontCache.cleanup();
+    }
+
     public void createUniforms() {
         uniformsMap = new UniformsMap(shaderProgram.getProgramId());
         uniformsMap.createUniform("projectionMatrix");

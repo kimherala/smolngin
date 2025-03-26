@@ -11,6 +11,10 @@ public class FontCache {
         fontMap = new HashMap<>();
     }
 
+    public void cleanup() {
+        fontMap.values().forEach(Font::cleanup);
+    }
+
     public Font getFont(String name, int fontSize) {
         return fontMap.computeIfAbsent(new FontKey(name, fontSize), k -> new Font(k.name, k.size));
     }

@@ -198,6 +198,10 @@ public class Font {
     public void cleanup() {
         glDeleteBuffers(vbo);
         glDeleteVertexArrays(vao);
+
+        for (CharacterInfo ci : characters.values()) {
+            glDeleteTextures(ci.textureId);
+        }
     }
 }
 
