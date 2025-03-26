@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public class TextureCache {
     private static final String DEFAULT_TEXTURE = "../resources/main/texture/default_texture.png";
-    private Map<String, Texture> textureMap;
+    private final Map<String, Texture> textureMap;
 
     public TextureCache() {
         textureMap = new HashMap<>();

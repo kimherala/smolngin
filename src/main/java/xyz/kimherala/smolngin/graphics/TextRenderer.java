@@ -18,6 +18,7 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 public class TextRenderer {
     private ShaderProgram shaderProgram;
     private UniformsMap uniformsMap;
+    private FontCache fontCache;
 
     public TextRenderer() {
         List<ShaderProgram.ShaderModuleDate> shaderModuleDateList = new ArrayList<>();
@@ -25,6 +26,8 @@ public class TextRenderer {
         shaderModuleDateList.add(new ShaderProgram.ShaderModuleDate("../resources/main/shader/glyph.frag", GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDateList);
         createUniforms();
+
+        fontCache = new FontCache();
     }
 
     public void createUniforms() {
@@ -34,7 +37,9 @@ public class TextRenderer {
         uniformsMap.createUniform("textColor");
     }
 
-    public void render(Font font, String text, float x, float y) {
+    public void render(String name, String text, int size, float x, float y) {
+        Font font = fontCache.getFont(name, size);
+
         shaderProgram.bind();
 
         uniformsMap.setUniform("projectionMatrix", new Matrix4f().setOrtho(0.0f, 720.0f, 0.0f, 720.0f, 0.0f, 1000.0f));

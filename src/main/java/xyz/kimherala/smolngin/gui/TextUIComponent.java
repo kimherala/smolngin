@@ -1,5 +1,7 @@
 package xyz.kimherala.smolngin.gui;
 
+import xyz.kimherala.smolngin.graphics.FontCache;
+
 public class TextUIComponent implements UIComponent {
     private String id;
     private int width;
@@ -7,6 +9,7 @@ public class TextUIComponent implements UIComponent {
     private int x;
     private int y;
 
+    private String fontName = "Fontin-Regular";
     private String text = "Hello, World";
     private int fontSize = 12;
 
@@ -15,5 +18,25 @@ public class TextUIComponent implements UIComponent {
 
     public String getId() {
         return id;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public String getFont() {
+        return fontName;
+    }
+
+    public int getFontSize() {
+        return fontSize;
     }
 }

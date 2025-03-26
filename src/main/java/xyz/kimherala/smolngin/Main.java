@@ -14,7 +14,7 @@ public class Main {
     }
 
     public void run() {
-        window = new Window("lwjgltesting", 720, 720);
+        window = new Window("smolngin-demo", 720, 720);
         renderer = new Renderer();
         game = new Game(window);
 

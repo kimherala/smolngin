@@ -97,7 +97,6 @@ public class Window {
         glfwShowWindow(this.window);
 
         textRenderer = new TextRenderer();
-        font = new Font("Fontin-Regular", 12);
     }
 
     public void updateLoop(Renderer renderer, Game game) {
@@ -126,7 +125,7 @@ public class Window {
 
                 GL11.glEnable(GL11.GL_BLEND);
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                textRenderer.render(font, "Hello, World!", 100, 100);
+                textRenderer.render("Fontin-Regular","Hello, World!", 20,100, 100);
                 GL11.glEnable(GL11.GL_BLEND);
 
                 glfwSwapBuffers(this.window); // swap the color buffers

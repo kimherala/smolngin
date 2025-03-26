@@ -37,6 +37,6 @@ public class GUIRenderer {
     }
 
     public void renderText(Window window, TextUIComponent component) {
-        //textRenderer.render();
+        textRenderer.render(component.getFont(), component.getText(), component.getFontSize(), component.getX(), component.getY());
     }
 }

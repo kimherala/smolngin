@@ -58,7 +58,7 @@ public class Font {
             int utf8UnicodePoint = new String(utf8Bytes, StandardCharsets.UTF_8).codePointAt(0);
 
             int codePoint = stbtt_FindGlyphIndex(fontInfo, utf8UnicodePoint);
-            float scale = stbtt_ScaleForMappingEmToPixels(fontInfo, 48);
+            float scale = stbtt_ScaleForMappingEmToPixels(fontInfo, fontSize);
 
             int advanceWidth;
             int leftSideBearing;
