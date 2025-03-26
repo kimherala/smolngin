@@ -1,0 +1,12 @@
+#version 330
+
+in vec2 TextCoords;
+out vec4 color;
+
+uniform sampler2D textureSampler;
+uniform vec3 textColor;
+
+void main() {
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(textureSampler, TextCoords).r);
+    color = vec4(textColor, 1.0) * sampled;
+}
