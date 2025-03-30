@@ -1,12 +1,12 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "9.0.0-beta8"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "xyz.kimherala"
 //version = "0.0.1-SNAPSHOT"
 
-val lwjglVersion = "3.3.6"
+val lwjglVersion = "3.4.0-SNAPSHOT"
 val jomlVersion = "1.10.7"
 
 val lwjglNatives = Pair(
@@ -60,6 +60,13 @@ tasks.register("copyResources", Copy::class) {
     into("build/resources/") // Destination directory
 }
 
+tasks.register("copyLaunchCodes", Copy::class) {
+    from("src/main/resources/launch.sh") // Source directory
+    into("build/libs/") // Destination directory
+}
+
 tasks.build {
     dependsOn(tasks.shadowJar)
+    //dependsOn("copyResources")
+    dependsOn("copyLaunchCodes")
 }
