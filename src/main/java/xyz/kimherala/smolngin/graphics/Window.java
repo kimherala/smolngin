@@ -17,13 +17,11 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
     // The window handle
-    private long window;
+    private final long window;
     private String title;
     private int width;
     private int height;
     boolean resized = false;
-    private TextRenderer textRenderer;
-    private Font font;
 
     public Window(String title, int width, int height) {
         this.title = title;
@@ -95,51 +93,9 @@ public class Window {
 
         // Make the window visible
         glfwShowWindow(this.window);
-
-        textRenderer = new TextRenderer();
-    }
-
-    public void updateLoop(Renderer renderer, Game game) {
-        // Run the rendering loop until the user has attempted to close
-        // the window or has pressed the ESCAPE key.
-
-        final double fpsLimit = 1.0 / 30.0;
-        double lastUpdateTime = 0;
-        double lastFrameTime = 0;
-
-        while (!glfwWindowShouldClose(this.window)) {
-            double now = glfwGetTime();
-            double deltaTime = now - lastUpdateTime;
-
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
-            glfwPollEvents();
-            //glfwWaitEvents();
-
-            if ((now - lastFrameTime) >= fpsLimit) {
-                game.update();
-
-                GL11.glEnable(GL11.GL_DEPTH_TEST);
-                renderer.render(this, game.getScene());
-                GL11.glDisable(GL11.GL_DEPTH_TEST);
-
-                GL11.glEnable(GL11.GL_BLEND);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                textRenderer.render("Fontin-Regular","Hello, World!", 20,100, 100);
-                textRenderer.render("Fontin-Regular","Hello, World!", 12,200, 200);
-                GL11.glEnable(GL11.GL_BLEND);
-
-                glfwSwapBuffers(this.window); // swap the color buffers
-                lastFrameTime = now;
-            }
-
-            lastUpdateTime = now;
-        }
     }
 
     public void cleanup() {
-        textRenderer.cleanup();
-
         // Free the window callbacks and destroy the window
         glfwFreeCallbacks(this.window);
         glfwDestroyWindow(this.window);
@@ -163,5 +119,9 @@ public class Window {
 
     public void setResized(boolean resized) {
         this.resized = resized;
+    }
+
+    public long getWindow() {
+        return window;
     }
 }

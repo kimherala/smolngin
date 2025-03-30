@@ -1,5 +1,7 @@
 package xyz.kimherala.smolngin.game;
 
+
+import org.lwjgl.opengl.GL11;
 import xyz.kimherala.smolngin.graphics.*;
 import xyz.kimherala.smolngin.gui.ComponentTree;
 import xyz.kimherala.smolngin.gui.ContainerUIComponent;
@@ -7,14 +9,21 @@ import xyz.kimherala.smolngin.gui.ContainerUIComponent;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
+
 public class Game implements ApplicationInterface {
-    private Window window;
-    private List<Entity> cubes;
-    private Scene scene;
+    private final Window window;
+    private final Renderer renderer;
+    private final TextRenderer textRenderer;
+    private final List<Entity> cubes;
+    private final Scene scene;
     private float rotation;
 
     public Game(Window window) {
         this.window = window;
+        renderer = new Renderer();
+        textRenderer = new TextRenderer();
 
         float[] positions = new float[]{
                 // V0
@@ -131,7 +140,7 @@ public class Game implements ApplicationInterface {
 
         for (int i = 0; i < 1; i++) {
             Entity cube = new Entity("cube-entity-" + i, cubeModel.getId());
-            cube.setPosition(0, 0, -5);
+            cube.setPosition(0, i, -5);
             scene.addEntity(cube);
             cubes.add(cube);
         }
@@ -139,13 +148,26 @@ public class Game implements ApplicationInterface {
         ComponentTree<?> gui = new ComponentTree<>(new ContainerUIComponent(0, 0, 1280, 720));
     }
 
+    public void cleanup() {
+        scene.cleanup();
+        renderer.cleanup();
+        textRenderer.cleanup();
+    }
+
     public Scene getScene() {
         return scene;
     }
 
-    public void update() {
-        rotation += 1.5f;
-        if ( rotation > 360 ) {
+    public void update(double dt) {
+        if (window.isResized() ) {
+            GL11.glViewport(0, 0, window.getWidth(), window.getHeight());
+            scene.resize(window.getWidth(), window.getHeight());
+            textRenderer.resize(window.getWidth(), window.getHeight());
+            window.setResized(false);
+        }
+
+        rotation += (float) (50.0f * dt);
+        if (rotation > 360) {
             rotation = 0;
         }
 
@@ -155,7 +177,48 @@ public class Game implements ApplicationInterface {
         }
     }
 
-    public void cleanup() {
-        scene.cleanup();
+    public void render() {
+        GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        renderer.render(this.scene);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        textRenderer.render("Fontin-Regular", "Hello, World!", 20,100, 100);
+        GL11.glDisable(GL11.GL_BLEND);
+
+        glfwSwapBuffers(window.getWindow()); // swap the color buffers
+    }
+
+    public void loop() {
+        // Run the rendering loop until the user has attempted to close
+        // the window or has pressed the ESCAPE key.
+
+        double t = 0.0f;
+        final double dt = 1.0 / 1000.0;
+        double currentTime = glfwGetTime();
+
+        while (!glfwWindowShouldClose(window.getWindow())) {
+            double newTime = glfwGetTime();
+            double frameTime = newTime - currentTime;
+            currentTime = newTime;
+
+            while (frameTime > 0.0f) {
+                float deltaTime = (float) Math.min(frameTime, dt);
+                update(deltaTime);
+                frameTime -= deltaTime;
+                t += deltaTime;
+            }
+
+            render();
+
+            // Poll for window events. The key callback above will only be
+            // invoked during this call.
+            glfwPollEvents();
+            //glfwWaitEvents();
+        }
     }
 }

@@ -19,6 +19,7 @@ public class TextRenderer {
     private ShaderProgram shaderProgram;
     private UniformsMap uniformsMap;
     private FontCache fontCache;
+    private Matrix4f projection;
 
     public TextRenderer() {
         List<ShaderProgram.ShaderModuleDate> shaderModuleDateList = new ArrayList<>();
@@ -27,6 +28,7 @@ public class TextRenderer {
         shaderProgram = new ShaderProgram(shaderModuleDateList);
         createUniforms();
 
+        projection = new Matrix4f().setOrtho(0.0f, 720.0f, 0.0f, 720.0f, 0.0f, 1000.0f);
         fontCache = new FontCache();
     }
 
@@ -42,12 +44,12 @@ public class TextRenderer {
         uniformsMap.createUniform("textColor");
     }
 
-    public void render(String name, String text, int size, float x, float y) {
-        Font font = fontCache.getFont(name, size);
+    public void render(String fontName, String text, int fontSize, float x, float y) {
+        Font font = fontCache.getFont(fontName, fontSize);
 
         shaderProgram.bind();
 
-        uniformsMap.setUniform("projectionMatrix", new Matrix4f().setOrtho(0.0f, 720.0f, 0.0f, 720.0f, 0.0f, 1000.0f));
+        uniformsMap.setUniform("projectionMatrix", projection);
         uniformsMap.setUniform("textureSampler", 0);
         uniformsMap.setUniform("textColor", 1.0f, 1.0f, 1.0f);
 
@@ -93,10 +95,9 @@ public class TextRenderer {
 
             FloatBuffer vertexBuffer = MemoryUtil.memCallocFloat(vertices.length);
             vertexBuffer.put(vertices).flip();
-            //glBufferSubData(GL_ARRAY_BUFFER, 0, vertexBuffer);
-            glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, vertexBuffer);
+            //glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
             MemoryUtil.memFree(vertexBuffer);
-
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -104,10 +105,13 @@ public class TextRenderer {
 
             x += ch.advance() * scale;
         }
-
-        glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        glBindVertexArray(0);
         shaderProgram.unbind();
+    }
+
+    public void resize(int width, int height) {
+        projection.setOrtho(0.0f, width, 0.0f, height, 0.0f, 1000.0f);
     }
 }

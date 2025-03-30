@@ -1,6 +1,7 @@
 package xyz.kimherala.smolngin.graphics;
 
 import org.joml.Vector2i;
+import org.lwjgl.opengl.*;
 import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.system.MemoryStack;
 
@@ -13,12 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.stb.STBTruetype.*;
 
 public class Font {
@@ -49,7 +44,7 @@ public class Font {
             throw new RuntimeException("Failed to load font!");
         }
 
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
 
         for (int i = 0; i < 128; i++) {
             ByteBuffer bitmapBuffer;
@@ -106,8 +101,8 @@ public class Font {
                 int bearingY = -iy0;
                 float baseline = ascent * scale;
 
-                int textureId = glGenTextures();
-                glBindTexture(GL_TEXTURE_2D, textureId);
+                int textureId = GL11.glGenTextures();
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
 
                 characters.put(utf8UnicodePoint, new CharacterInfo(
                         textureId,
@@ -125,37 +120,36 @@ public class Font {
                 continue;
             }
 
-            glTexImage2D(
-                    GL_TEXTURE_2D,
+            GL11.glTexImage2D(
+                    GL11.GL_TEXTURE_2D,
                     0,
-                    GL_RED,
+                    GL11.GL_RED,
                     characters.get(utf8UnicodePoint).size.x,
                     characters.get(utf8UnicodePoint).size.y,
                     0,
-                    GL_RED,
-                    GL_UNSIGNED_BYTE,
+                    GL11.GL_RED,
+                    GL11.GL_UNSIGNED_BYTE,
                     bitmapBuffer
             );
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 
             stbtt_FreeBitmap(bitmapBuffer);
         }
 
-        vao = glGenVertexArrays();
-        vbo = glGenBuffers();
+        vao = GL30.glGenVertexArrays();
+        vbo = GL15.glGenBuffers();
 
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, 6 * 4, GL_DYNAMIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 4, GL_FLOAT, false, 0, 0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        GL30.glBindVertexArray(vao);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, Float.BYTES * 6 * 4, GL15.GL_DYNAMIC_DRAW);
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glVertexAttribPointer(0, 4, GL11.GL_FLOAT, false, 0, 0);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+        GL30.glBindVertexArray(0);
     }
 
     public CharacterInfo getCharacter(String key) {
@@ -196,11 +190,11 @@ public class Font {
     }
 
     public void cleanup() {
-        glDeleteBuffers(vbo);
-        glDeleteVertexArrays(vao);
+        GL15.glDeleteBuffers(vbo);
+        GL30.glDeleteVertexArrays(vao);
 
         for (CharacterInfo ci : characters.values()) {
-            glDeleteTextures(ci.textureId);
+            GL11.glDeleteTextures(ci.textureId);
         }
     }
 }
