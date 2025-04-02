@@ -1,31 +1,22 @@
 package xyz.kimherala.smolngin.graphics;
 
 import org.joml.Matrix4f;
-import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.opengl.*;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-
 public class TextRenderer {
-    private ShaderProgram shaderProgram;
+    private final ShaderProgram shaderProgram;
     private UniformsMap uniformsMap;
-    private FontCache fontCache;
-    private Matrix4f projection;
+    private final FontCache fontCache;
+    private final Matrix4f projection;
 
     public TextRenderer() {
-        List<ShaderProgram.ShaderModuleDate> shaderModuleDateList = new ArrayList<>();
-        shaderModuleDateList.add(new ShaderProgram.ShaderModuleDate("../resources/main/shader/glyph.vert", GL_VERTEX_SHADER));
-        shaderModuleDateList.add(new ShaderProgram.ShaderModuleDate("../resources/main/shader/glyph.frag", GL_FRAGMENT_SHADER));
-        shaderProgram = new ShaderProgram(shaderModuleDateList);
+        List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/glyph.vert", GL20.GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/glyph.frag", GL20.GL_FRAGMENT_SHADER));
+        shaderProgram = new ShaderProgram(shaderModuleDataList);
         createUniforms();
 
         projection = new Matrix4f().setOrtho(0.0f, 720.0f, 0.0f, 720.0f, 0.0f, 1000.0f);
@@ -53,8 +44,8 @@ public class TextRenderer {
         uniformsMap.setUniform("textureSampler", 0);
         uniformsMap.setUniform("textColor", 1.0f, 1.0f, 1.0f);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindVertexArray(font.getVaoId());
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        GL30.glBindVertexArray(font.getVaoId());
 
         float z = 1.0f;
         float scale = 1.0f;
@@ -90,24 +81,18 @@ public class TextRenderer {
                     xpos + w, ypos + h, 1.0f, 0.0f
             };
 
-            glBindTexture(GL_TEXTURE_2D, ch.textureId());
-            glBindBuffer(GL_ARRAY_BUFFER, font.getVboId());
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, ch.textureId());
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, font.getVboId());
+            GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertices);
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
-            FloatBuffer vertexBuffer = MemoryUtil.memCallocFloat(vertices.length);
-            vertexBuffer.put(vertices).flip();
-            glBufferSubData(GL_ARRAY_BUFFER, 0, vertexBuffer);
-            //glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
-            MemoryUtil.memFree(vertexBuffer);
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
 
             x += ch.advance() * scale;
         }
-        glBindTexture(GL_TEXTURE_2D, 0);
 
-        glBindVertexArray(0);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        GL30.glBindVertexArray(0);
         shaderProgram.unbind();
     }
 

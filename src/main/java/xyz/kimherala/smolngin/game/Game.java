@@ -16,6 +16,7 @@ public class Game implements ApplicationInterface {
     private final Window window;
     private final Renderer renderer;
     private final TextRenderer textRenderer;
+    private final ShapeRenderer shapeRenderer;
     private final List<Entity> cubes;
     private final Scene scene;
     private float rotation;
@@ -24,6 +25,7 @@ public class Game implements ApplicationInterface {
         this.window = window;
         renderer = new Renderer();
         textRenderer = new TextRenderer();
+        shapeRenderer = new ShapeRenderer();
 
         float[] positions = new float[]{
                 // V0
@@ -152,6 +154,7 @@ public class Game implements ApplicationInterface {
         scene.cleanup();
         renderer.cleanup();
         textRenderer.cleanup();
+        shapeRenderer.cleanup();
     }
 
     public Scene getScene() {
@@ -163,6 +166,7 @@ public class Game implements ApplicationInterface {
             GL11.glViewport(0, 0, window.getWidth(), window.getHeight());
             scene.resize(window.getWidth(), window.getHeight());
             textRenderer.resize(window.getWidth(), window.getHeight());
+            shapeRenderer.resize(window.getWidth(), window.getHeight());
             window.setResized(false);
         }
 
@@ -187,8 +191,11 @@ public class Game implements ApplicationInterface {
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        textRenderer.render("Fontin-Regular", "Hello, World!", 20,100, 100);
+        textRenderer.render("Fontin-Regular", "Hello, World!\nHello, World!", 20,100, 100);
         GL11.glDisable(GL11.GL_BLEND);
+
+        shapeRenderer.render(0, 0, 100, 100);
+        shapeRenderer.render(window.getWidth()-100, window.getHeight()-100, 100, 100);
 
         glfwSwapBuffers(window.getWindow()); // swap the color buffers
     }

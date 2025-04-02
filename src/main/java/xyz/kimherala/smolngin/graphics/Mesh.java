@@ -42,7 +42,7 @@ public class Mesh {
         storeDataInAttributeList(1, 2, textCoords);
 
         // Indices VBO
-        storeDataInElementList(indices);
+        bindIndicesBuffer(indices);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL30.glBindVertexArray(0);
@@ -60,7 +60,7 @@ public class Mesh {
         storeDataInAttributeList(0, 3, positions);
 
         // Indices VBO
-        storeDataInElementList(indices);
+        bindIndicesBuffer(indices);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL30.glBindVertexArray(0);
@@ -86,7 +86,7 @@ public class Mesh {
         MemoryUtil.memFree(dataBuffer);
     }
 
-    public void storeDataInElementList(int[] data) {
+    public void bindIndicesBuffer(int[] data) {
         IntBuffer dataBuffer;
 
         int vboId = GL15.glGenBuffers();

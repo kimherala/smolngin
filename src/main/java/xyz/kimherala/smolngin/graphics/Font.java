@@ -145,15 +145,22 @@ public class Font {
 
         GL30.glBindVertexArray(vao);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
+
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, Float.BYTES * 6 * 4, GL15.GL_DYNAMIC_DRAW);
         GL20.glEnableVertexAttribArray(0);
         GL20.glVertexAttribPointer(0, 4, GL11.GL_FLOAT, false, 0, 0);
+
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL30.glBindVertexArray(0);
     }
 
-    public CharacterInfo getCharacter(String key) {
-        return characters.get(key.codePointAt(0));
+    public void cleanup() {
+        GL15.glDeleteBuffers(vbo);
+        GL30.glDeleteVertexArrays(vao);
+
+        for (CharacterInfo ci : characters.values()) {
+            GL11.glDeleteTextures(ci.textureId);
+        }
     }
 
     public int getVaoId() {
@@ -162,6 +169,10 @@ public class Font {
 
     public int getVboId() {
         return vbo;
+    }
+
+    public CharacterInfo getCharacter(String key) {
+        return characters.get(key.codePointAt(0));
     }
 
     public int getWidth(String text) {
@@ -187,15 +198,6 @@ public class Font {
         }
 
         return result;
-    }
-
-    public void cleanup() {
-        GL15.glDeleteBuffers(vbo);
-        GL30.glDeleteVertexArrays(vao);
-
-        for (CharacterInfo ci : characters.values()) {
-            GL11.glDeleteTextures(ci.textureId);
-        }
     }
 }
 
