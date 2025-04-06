@@ -15,8 +15,8 @@ public class ShapeRenderer {
 
     public ShapeRenderer() {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/shape.vert", GL20.GL_VERTEX_SHADER));
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/shape.frag", GL20.GL_FRAGMENT_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("shape.vert", GL20.GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("shape.frag", GL20.GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
         createUniforms();
 

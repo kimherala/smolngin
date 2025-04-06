@@ -14,8 +14,8 @@ public class TextRenderer {
 
     public TextRenderer() {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/glyph.vert", GL20.GL_VERTEX_SHADER));
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/glyph.frag", GL20.GL_FRAGMENT_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("glyph.vert", GL20.GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("glyph.frag", GL20.GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
         createUniforms();
 
@@ -94,6 +94,10 @@ public class TextRenderer {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
         GL30.glBindVertexArray(0);
         shaderProgram.unbind();
+    }
+
+    public FontCache getFontCache() {
+        return fontCache;
     }
 
     public void resize(int width, int height) {

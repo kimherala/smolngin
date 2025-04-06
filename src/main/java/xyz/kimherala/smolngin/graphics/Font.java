@@ -4,6 +4,7 @@ import org.joml.Vector2i;
 import org.lwjgl.opengl.*;
 import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.system.MemoryStack;
+import xyz.kimherala.smolngin.ResourceLoader;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,23 +21,16 @@ public class Font {
     //private static final String DEFAULT_FONT = "../resources/main/font/Fontin-Regular.ttf";
     public record CharacterInfo(int textureId, Vector2i size, Vector2i bearing, int advance, int lineGap, float baseline) {}
 
-    private int fontSize = 12;
+    private int fontHeight;
     private HashMap<Integer, CharacterInfo> characters;
     private int vao;
     private int vbo;
 
     public Font(String fontName, int fontSize) {
-        this.fontSize = fontSize;
-
+        ResourceLoader resourceLoader = new ResourceLoader().getInstance();
         characters = new HashMap<>();
 
-        ByteBuffer fontBuffer;
-        try (FileChannel fileChannel = FileChannel.open(Path.of("../resources/main/font/" + fontName + ".ttf"), StandardOpenOption.READ)) {
-            long fileSize = fileChannel.size();
-            fontBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileSize);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load font", e);
-        }
+        ByteBuffer fontBuffer = resourceLoader.loadFont(fontName);
 
         STBTTFontinfo fontInfo = STBTTFontinfo.create();
 
@@ -140,6 +134,8 @@ public class Font {
             stbtt_FreeBitmap(bitmapBuffer);
         }
 
+        setFontHeight();
+
         vao = GL30.glGenVertexArrays();
         vbo = GL15.glGenBuffers();
 
@@ -186,18 +182,20 @@ public class Font {
         return result;
     }
 
-    public int getHeight(String text) {
+    private void setFontHeight() {
         int result = 0;
 
-        for (String c : text.split("")) {
-            CharacterInfo ch = getCharacter(c);
-
+        for (CharacterInfo ch : characters.values()) {
             if (ch.size().y > result) {
                 result = ch.size().y;
             }
         }
 
-        return result;
+        fontHeight = result;
+    }
+
+    public int getFontHeight() {
+        return fontHeight;
     }
 }
 

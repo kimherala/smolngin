@@ -15,8 +15,8 @@ public class SceneRenderer {
 
     public SceneRenderer() {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/texture.vert", GL20.GL_VERTEX_SHADER));
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("../resources/main/shader/texture.frag", GL20.GL_FRAGMENT_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("texture.vert", GL20.GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("texture.frag", GL20.GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
         createUniforms();
     }
