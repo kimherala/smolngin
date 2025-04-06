@@ -6,7 +6,6 @@ import xyz.kimherala.smolngin.graphics.Window;
 
 public class Main {
     private Window window;
-    private Renderer renderer;
     private Game game;
 
     public static void main(String[] args) {
@@ -15,17 +14,15 @@ public class Main {
 
     public void run() {
         window = new Window("smolngin-demo", 720, 720);
-        renderer = new Renderer();
         game = new Game(window);
 
-        window.updateLoop(renderer, game);
+        game.loop();
 
-        terminate();
+        cleanup();
     }
 
-    public void terminate() {
+    public void cleanup() {
         game.cleanup();
-        renderer.cleanup();
         window.cleanup();
     }
 }

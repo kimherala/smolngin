@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "9.0.0-beta8"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "xyz.kimherala"
@@ -8,6 +8,7 @@ group = "xyz.kimherala"
 
 val lwjglVersion = "3.3.6"
 val jomlVersion = "1.10.7"
+
 
 val lwjglNatives = Pair(
     System.getProperty("os.name")!!,
@@ -30,7 +31,6 @@ val lwjglNatives = Pair(
 
 repositories {
     mavenCentral()
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }
 
 dependencies {
@@ -60,6 +60,13 @@ tasks.register("copyResources", Copy::class) {
     into("build/resources/") // Destination directory
 }
 
+tasks.register("copyLaunchCodes", Copy::class) {
+    from("src/main/resources/launch.sh") // Source directory
+    into("build/libs/") // Destination directory
+}
+
 tasks.build {
     dependsOn(tasks.shadowJar)
+    //dependsOn("copyResources")
+    dependsOn("copyLaunchCodes")
 }

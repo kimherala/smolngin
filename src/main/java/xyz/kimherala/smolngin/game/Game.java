@@ -1,20 +1,33 @@
 package xyz.kimherala.smolngin.game;
 
-import xyz.kimherala.smolngin.graphics.*;
-import xyz.kimherala.smolngin.gui.ComponentTree;
-import xyz.kimherala.smolngin.gui.ContainerUIComponent;
 
+import org.lwjgl.opengl.GL11;
+import xyz.kimherala.smolngin.graphics.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
+
 public class Game implements ApplicationInterface {
-    private Window window;
-    private List<Entity> cubes;
-    private Scene scene;
+    private final Window window;
+    private final Renderer renderer;
+    private final TextRenderer textRenderer;
+    private final ShapeRenderer shapeRenderer;
+    private FontCache fontCache;
+    private final List<Entity> cubes;
+    private final Scene scene;
     private float rotation;
+    private int fps;
+    private int frames;
+    private int ticks;
+    private int ticksInSec;
 
     public Game(Window window) {
         this.window = window;
+        renderer = new Renderer();
+        textRenderer = new TextRenderer();
+        shapeRenderer = new ShapeRenderer();
 
         float[] positions = new float[]{
                 // V0
@@ -131,21 +144,30 @@ public class Game implements ApplicationInterface {
 
         for (int i = 0; i < 1; i++) {
             Entity cube = new Entity("cube-entity-" + i, cubeModel.getId());
-            cube.setPosition(0, 0, -5);
+            cube.setPosition(0, i, -5);
             scene.addEntity(cube);
             cubes.add(cube);
         }
-
-        ComponentTree<?> gui = new ComponentTree<>(new ContainerUIComponent(0, 0, 1280, 720));
     }
 
-    public Scene getScene() {
-        return scene;
+    public void cleanup() {
+        scene.cleanup();
+        renderer.cleanup();
+        textRenderer.cleanup();
+        shapeRenderer.cleanup();
     }
 
-    public void update() {
-        rotation += 1.5f;
-        if ( rotation > 360 ) {
+    public void update(float dt) {
+        if (window.isResized() ) {
+            GL11.glViewport(0, 0, window.getWidth(), window.getHeight());
+            scene.resize(window.getWidth(), window.getHeight());
+            textRenderer.resize(window.getWidth(), window.getHeight());
+            shapeRenderer.resize(window.getWidth(), window.getHeight());
+            window.setResized(false);
+        }
+
+        rotation += 50.0f * dt;
+        if (rotation > 360) {
             rotation = 0;
         }
 
@@ -155,7 +177,68 @@ public class Game implements ApplicationInterface {
         }
     }
 
-    public void cleanup() {
-        scene.cleanup();
+    public void render() {
+        GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        renderer.render(this.scene);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        textRenderer.render("Fontin-Regular", "FPS: " + fps, 20,0, window.getHeight()-20);
+        textRenderer.render("Fontin-Regular", "Tick: " + ticksInSec, 20, 0, window.getHeight()-40);
+        GL11.glDisable(GL11.GL_BLEND);
+
+        shapeRenderer.render(0, 0, 100, 100);
+        shapeRenderer.render(window.getWidth()-100, window.getHeight()-100, 100, 100);
+
+        glfwSwapBuffers(window.getWindow()); // swap the color buffers
+    }
+
+    public void loop() {
+        // Run the rendering loop until the user has attempted to close
+        // the window or has pressed the ESCAPE key.
+
+        float t = 0.0f;
+        final float dt = 1.0f / 60.0f;
+        float currentTime = (float) glfwGetTime();
+        float startTime = (float) glfwGetTime();
+        float accumulator = 0.0f;
+
+        while (!glfwWindowShouldClose(window.getWindow())) {
+            float newTime = (float) glfwGetTime();
+            float frameTime = newTime - currentTime;
+            currentTime = newTime;
+
+            if (frameTime > 0.25f) {
+                frameTime = 0.25f;
+            }
+
+            accumulator += frameTime;
+            while (accumulator > dt) {
+                // Poll for window events. The key callback above will only be
+                // invoked during this call.
+                glfwPollEvents();
+                //glfwWaitEvents();
+
+                update(dt);
+                t += dt;
+                accumulator -= dt;
+                ticks++;
+            }
+
+            if (frames >= 1000) {
+                fps = (int) (frames / (currentTime - startTime));
+                ticksInSec = (int) (ticks / (currentTime - startTime));
+                startTime = currentTime;
+                ticks = 0;
+                frames = 0;
+            }
+            frames++;
+
+            render();
+        }
     }
 }

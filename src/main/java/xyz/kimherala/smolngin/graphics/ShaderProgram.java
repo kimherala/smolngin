@@ -1,7 +1,7 @@
 package xyz.kimherala.smolngin.graphics;
 
 import org.lwjgl.opengl.GL30;
-import xyz.kimherala.smolngin.Utils;
+import xyz.kimherala.smolngin.ResourceLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,18 +9,20 @@ import java.util.List;
 import static org.lwjgl.opengl.GL20.*;
 
 public class ShaderProgram {
-    public record ShaderModuleDate(String shaderFile, int shaderType) {}
+    public record ShaderModuleData(String shaderFile, int shaderType) {}
 
     private final int programId;
 
-    public ShaderProgram(List<ShaderModuleDate> shaderModuleDateList) {
+    public ShaderProgram(List<ShaderModuleData> shaderModuleDataList) {
         programId = glCreateProgram();
         if (programId == 0) {
             throw new RuntimeException("Could not create Shader");
         }
 
+        ResourceLoader resourceLoader = new ResourceLoader().getInstance();
+
         List<Integer> shaderModules = new ArrayList<>();
-        shaderModuleDateList.forEach(s -> shaderModules.add(createShader(Utils.loadResource(s.shaderFile), s.shaderType)));
+        shaderModuleDataList.forEach(s -> shaderModules.add(createShader(resourceLoader.loadShader(s.shaderFile), s.shaderType)));
 
         link(shaderModules);
     }

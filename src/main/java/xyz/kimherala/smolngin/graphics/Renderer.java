@@ -10,16 +10,7 @@ public class Renderer {
         sceneRenderer = new SceneRenderer();
     }
 
-    public void render(Window window, Scene scene) {
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        if (window.isResized() ) {
-            glViewport(0, 0, window.getWidth(), window.getHeight());
-            scene.resize(window.getWidth() , window.getHeight());
-            window.setResized(false);
-        }
-
+    public void render(Scene scene) {
         sceneRenderer.render(scene);
     }
 

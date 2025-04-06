@@ -4,14 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FontCache {
-    public record FontKey(String name, int size) {}
+    public record FontKey(String fontName, int fontSize) {}
     private final Map<FontKey, Font> fontMap;
 
     public FontCache() {
         fontMap = new HashMap<>();
     }
 
-    public Font getFont(String name, int fontSize) {
-        return fontMap.computeIfAbsent(new FontKey(name, fontSize), k -> new Font(k.name, k.size));
+    public void cleanup() {
+        fontMap.values().forEach(Font::cleanup);
+    }
+
+    public Font getFont(String fontName, int fontSize) {
+        return fontMap.computeIfAbsent(new FontKey(fontName, fontSize), k -> new Font(k.fontName, k.fontSize));
     }
 }

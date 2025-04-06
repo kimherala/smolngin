@@ -1,8 +1,10 @@
 package xyz.kimherala.smolngin.graphics;
 
 import org.joml.Vector2i;
+import org.lwjgl.opengl.*;
 import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.system.MemoryStack;
+import xyz.kimherala.smolngin.ResourceLoader;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -13,35 +15,22 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.stb.STBTruetype.*;
 
 public class Font {
     //private static final String DEFAULT_FONT = "../resources/main/font/Fontin-Regular.ttf";
     public record CharacterInfo(int textureId, Vector2i size, Vector2i bearing, int advance, int lineGap, float baseline) {}
 
-    private int fontSize = 12;
+    private int fontHeight;
     private HashMap<Integer, CharacterInfo> characters;
     private int vao;
     private int vbo;
 
     public Font(String fontName, int fontSize) {
-        this.fontSize = fontSize;
-
+        ResourceLoader resourceLoader = new ResourceLoader().getInstance();
         characters = new HashMap<>();
 
-        ByteBuffer fontBuffer;
-        try (FileChannel fileChannel = FileChannel.open(Path.of("../resources/main/font/" + fontName + ".ttf"), StandardOpenOption.READ)) {
-            long fileSize = fileChannel.size();
-            fontBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileSize);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load font", e);
-        }
+        ByteBuffer fontBuffer = resourceLoader.loadFont(fontName);
 
         STBTTFontinfo fontInfo = STBTTFontinfo.create();
 
@@ -49,7 +38,7 @@ public class Font {
             throw new RuntimeException("Failed to load font!");
         }
 
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
 
         for (int i = 0; i < 128; i++) {
             ByteBuffer bitmapBuffer;
@@ -106,8 +95,8 @@ public class Font {
                 int bearingY = -iy0;
                 float baseline = ascent * scale;
 
-                int textureId = glGenTextures();
-                glBindTexture(GL_TEXTURE_2D, textureId);
+                int textureId = GL11.glGenTextures();
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
 
                 characters.put(utf8UnicodePoint, new CharacterInfo(
                         textureId,
@@ -125,41 +114,49 @@ public class Font {
                 continue;
             }
 
-            glTexImage2D(
-                    GL_TEXTURE_2D,
+            GL11.glTexImage2D(
+                    GL11.GL_TEXTURE_2D,
                     0,
-                    GL_RED,
+                    GL11.GL_RED,
                     characters.get(utf8UnicodePoint).size.x,
                     characters.get(utf8UnicodePoint).size.y,
                     0,
-                    GL_RED,
-                    GL_UNSIGNED_BYTE,
+                    GL11.GL_RED,
+                    GL11.GL_UNSIGNED_BYTE,
                     bitmapBuffer
             );
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 
             stbtt_FreeBitmap(bitmapBuffer);
         }
 
-        vao = glGenVertexArrays();
-        vbo = glGenBuffers();
+        setFontHeight();
 
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, 6 * 4, GL_DYNAMIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 4, GL_FLOAT, false, 0, 0);
+        vao = GL30.glGenVertexArrays();
+        vbo = GL15.glGenBuffers();
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        GL30.glBindVertexArray(vao);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
+
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, Float.BYTES * 6 * 4, GL15.GL_DYNAMIC_DRAW);
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glVertexAttribPointer(0, 4, GL11.GL_FLOAT, false, 0, 0);
+
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+        GL30.glBindVertexArray(0);
     }
 
-    public CharacterInfo getCharacter(String key) {
-        return characters.get(key.codePointAt(0));
+    public void cleanup() {
+        GL15.glDeleteBuffers(vbo);
+        GL30.glDeleteVertexArrays(vao);
+
+        for (CharacterInfo ci : characters.values()) {
+            GL11.glDeleteTextures(ci.textureId);
+        }
     }
 
     public int getVaoId() {
@@ -168,6 +165,10 @@ public class Font {
 
     public int getVboId() {
         return vbo;
+    }
+
+    public CharacterInfo getCharacter(String key) {
+        return characters.get(key.codePointAt(0));
     }
 
     public int getWidth(String text) {
@@ -181,23 +182,20 @@ public class Font {
         return result;
     }
 
-    public int getHeight(String text) {
+    private void setFontHeight() {
         int result = 0;
 
-        for (String c : text.split("")) {
-            CharacterInfo ch = getCharacter(c);
-
+        for (CharacterInfo ch : characters.values()) {
             if (ch.size().y > result) {
                 result = ch.size().y;
             }
         }
 
-        return result;
+        fontHeight = result;
     }
 
-    public void cleanup() {
-        glDeleteBuffers(vbo);
-        glDeleteVertexArrays(vao);
+    public int getFontHeight() {
+        return fontHeight;
     }
 }
 

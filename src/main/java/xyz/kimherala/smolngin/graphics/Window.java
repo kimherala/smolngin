@@ -17,13 +17,11 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
     // The window handle
-    private long window;
+    private final long window;
     private String title;
     private int width;
     private int height;
     boolean resized = false;
-    private TextRenderer textRenderer;
-    private Font font;
 
     public Window(String title, int width, int height) {
         this.title = title;
@@ -44,6 +42,7 @@ public class Window {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         // glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
         // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
@@ -95,45 +94,6 @@ public class Window {
 
         // Make the window visible
         glfwShowWindow(this.window);
-
-        textRenderer = new TextRenderer();
-    }
-
-    public void updateLoop(Renderer renderer, Game game) {
-        // Run the rendering loop until the user has attempted to close
-        // the window or has pressed the ESCAPE key.
-
-        final double fpsLimit = 1.0 / 30.0;
-        double lastUpdateTime = 0;
-        double lastFrameTime = 0;
-
-        while (!glfwWindowShouldClose(this.window)) {
-            double now = glfwGetTime();
-            double deltaTime = now - lastUpdateTime;
-
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
-            glfwPollEvents();
-            //glfwWaitEvents();
-
-            if ((now - lastFrameTime) >= fpsLimit) {
-                game.update();
-
-                GL11.glEnable(GL11.GL_DEPTH_TEST);
-                renderer.render(this, game.getScene());
-                GL11.glDisable(GL11.GL_DEPTH_TEST);
-
-                GL11.glEnable(GL11.GL_BLEND);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                textRenderer.render("Fontin-Regular","Hello, World!", 20,100, 100);
-                GL11.glEnable(GL11.GL_BLEND);
-
-                glfwSwapBuffers(this.window); // swap the color buffers
-                lastFrameTime = now;
-            }
-
-            lastUpdateTime = now;
-        }
     }
 
     public void cleanup() {
@@ -160,5 +120,9 @@ public class Window {
 
     public void setResized(boolean resized) {
         this.resized = resized;
+    }
+
+    public long getWindow() {
+        return window;
     }
 }
