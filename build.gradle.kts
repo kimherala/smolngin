@@ -6,8 +6,9 @@ plugins {
 group = "xyz.kimherala"
 //version = "0.0.1-SNAPSHOT"
 
-val lwjglVersion = "3.4.0-SNAPSHOT"
+val lwjglVersion = "3.3.6"
 val jomlVersion = "1.10.7"
+
 
 val lwjglNatives = Pair(
     System.getProperty("os.name")!!,
@@ -30,7 +31,6 @@ val lwjglNatives = Pair(
 
 repositories {
     mavenCentral()
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
 }
 
 dependencies {
