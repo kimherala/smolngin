@@ -3,9 +3,6 @@ package xyz.kimherala.smolngin.game;
 
 import org.lwjgl.opengl.GL11;
 import xyz.kimherala.smolngin.graphics.*;
-import xyz.kimherala.smolngin.gui.ComponentTree;
-import xyz.kimherala.smolngin.gui.ContainerUIComponent;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +14,14 @@ public class Game implements ApplicationInterface {
     private final Renderer renderer;
     private final TextRenderer textRenderer;
     private final ShapeRenderer shapeRenderer;
+    private FontCache fontCache;
     private final List<Entity> cubes;
     private final Scene scene;
     private float rotation;
+    private int fps;
+    private int frames;
+    private int ticks;
+    private int ticksInSec;
 
     public Game(Window window) {
         this.window = window;
@@ -146,8 +148,6 @@ public class Game implements ApplicationInterface {
             scene.addEntity(cube);
             cubes.add(cube);
         }
-
-        ComponentTree<?> gui = new ComponentTree<>(new ContainerUIComponent(0, 0, 1280, 720));
     }
 
     public void cleanup() {
@@ -157,11 +157,7 @@ public class Game implements ApplicationInterface {
         shapeRenderer.cleanup();
     }
 
-    public Scene getScene() {
-        return scene;
-    }
-
-    public void update(double dt) {
+    public void update(float dt) {
         if (window.isResized() ) {
             GL11.glViewport(0, 0, window.getWidth(), window.getHeight());
             scene.resize(window.getWidth(), window.getHeight());
@@ -170,7 +166,7 @@ public class Game implements ApplicationInterface {
             window.setResized(false);
         }
 
-        rotation += (float) (50.0f * dt);
+        rotation += 50.0f * dt;
         if (rotation > 360) {
             rotation = 0;
         }
@@ -191,7 +187,8 @@ public class Game implements ApplicationInterface {
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        textRenderer.render("Fontin-Regular", "Hello, World!\nHello, World!", 20,100, 100);
+        textRenderer.render("Fontin-Regular", "FPS: " + fps, 20,0, window.getHeight()-20);
+        textRenderer.render("Fontin-Regular", "Tick: " + ticksInSec, 20, 0, window.getHeight()-40);
         GL11.glDisable(GL11.GL_BLEND);
 
         shapeRenderer.render(0, 0, 100, 100);
@@ -204,28 +201,44 @@ public class Game implements ApplicationInterface {
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
 
-        double t = 0.0f;
-        final double dt = 1.0 / 1000.0;
-        double currentTime = glfwGetTime();
+        float t = 0.0f;
+        final float dt = 1.0f / 60.0f;
+        float currentTime = (float) glfwGetTime();
+        float startTime = (float) glfwGetTime();
+        float accumulator = 0.0f;
 
         while (!glfwWindowShouldClose(window.getWindow())) {
-            double newTime = glfwGetTime();
-            double frameTime = newTime - currentTime;
+            float newTime = (float) glfwGetTime();
+            float frameTime = newTime - currentTime;
             currentTime = newTime;
 
-            while (frameTime > 0.0f) {
-                float deltaTime = (float) Math.min(frameTime, dt);
-                update(deltaTime);
-                frameTime -= deltaTime;
-                t += deltaTime;
+            if (frameTime > 0.25f) {
+                frameTime = 0.25f;
             }
 
-            render();
+            accumulator += frameTime;
+            while (accumulator > dt) {
+                // Poll for window events. The key callback above will only be
+                // invoked during this call.
+                glfwPollEvents();
+                //glfwWaitEvents();
 
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
-            glfwPollEvents();
-            //glfwWaitEvents();
+                update(dt);
+                t += dt;
+                accumulator -= dt;
+                ticks++;
+            }
+
+            if (frames >= 1000) {
+                fps = (int) (frames / (currentTime - startTime));
+                ticksInSec = (int) (ticks / (currentTime - startTime));
+                startTime = currentTime;
+                ticks = 0;
+                frames = 0;
+            }
+            frames++;
+
+            render();
         }
     }
 }
