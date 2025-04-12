@@ -6,20 +6,16 @@ import org.lwjgl.stb.STBTTFontinfo;
 import org.lwjgl.system.MemoryStack;
 import xyz.kimherala.smolngin.ResourceLoader;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 
 import static org.lwjgl.stb.STBTruetype.*;
 
 public class Font {
     //private static final String DEFAULT_FONT = "../resources/main/font/Fontin-Regular.ttf";
-    public record CharacterInfo(int textureId, Vector2i size, Vector2i bearing, int advance, int lineGap, float baseline) {}
+    public record CharacterInfo(Integer textureId, Vector2i size, Vector2i bearing, int advance, int lineGap, float baseline) {}
 
     private int fontHeight;
     private HashMap<Integer, CharacterInfo> characters;
@@ -55,6 +51,8 @@ public class Font {
             int descent;
             int lineGap;
             int iy0;
+            int width;
+            int height;
 
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 IntBuffer leftSideBearingBuffer = stack.mallocInt(1);
@@ -76,8 +74,8 @@ public class Font {
                 lineGap = lineGapBuffer.get();
                 iy0 = iy0Buffer.get();
 
-                IntBuffer width = stack.mallocInt(1);
-                IntBuffer height = stack.mallocInt(1);
+                IntBuffer w = stack.mallocInt(1);
+                IntBuffer h = stack.mallocInt(1);
 
                 // Doesn't like control characters
                 bitmapBuffer = stbtt_GetGlyphBitmap(
@@ -85,32 +83,39 @@ public class Font {
                         scale,
                         scale,
                         codePoint,
-                        width,
-                        height,
+                        w,
+                        h,
                         null,
                         null
                 );
 
-                int bearingX = (int) (leftSideBearing * scale);
-                int bearingY = -iy0;
-                float baseline = ascent * scale;
-
-                int textureId = GL11.glGenTextures();
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
-
-                characters.put(utf8UnicodePoint, new CharacterInfo(
-                        textureId,
-                        new Vector2i(width.get(), height.get()),
-                        new Vector2i(bearingX, bearingY),
-                        (int) (advanceWidth * scale),
-                        (int) ((ascent - descent + lineGap) * scale),
-                        baseline
-                ));
+                width = w.get();
+                height = h.get();
             }
+
+            int bearingX = (int) (leftSideBearing * scale);
+            int bearingY = -iy0;
+            float baseline = ascent * scale;
+
+            Integer textureId = null;
 
             // bitmap could be a control character == invisible
             // skip making a texture in this case
-            if (bitmapBuffer == null)  {
+            if (bitmapBuffer != null)  {
+                textureId = GL11.glGenTextures();
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+            }
+
+            characters.put(utf8UnicodePoint, new CharacterInfo(
+                    textureId,
+                    new Vector2i(width, height),
+                    new Vector2i(bearingX, bearingY),
+                    (int) (advanceWidth * scale),
+                    (int) ((ascent - descent + lineGap) * scale),
+                    baseline
+            ));
+
+            if (textureId == null)  {
                 continue;
             }
 
@@ -131,6 +136,7 @@ public class Font {
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 
+            GL15.glBindTexture(GL15.GL_TEXTURE, 0);
             stbtt_FreeBitmap(bitmapBuffer);
         }
 
@@ -155,6 +161,7 @@ public class Font {
         GL30.glDeleteVertexArrays(vao);
 
         for (CharacterInfo ci : characters.values()) {
+            if (ci.textureId == null) continue;
             GL11.glDeleteTextures(ci.textureId);
         }
     }

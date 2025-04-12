@@ -12,13 +12,16 @@ import java.util.List;
 public class SceneRenderer {
     private ShaderProgram shaderProgram;
     private UniformsMap uniformsMap;
+    private TextureCache textureCache;
 
-    public SceneRenderer() {
+    public SceneRenderer(TextureCache textureCache) {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
         shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("texture.vert", GL20.GL_VERTEX_SHADER));
         shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("texture.frag", GL20.GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
         createUniforms();
+
+        this.textureCache = textureCache;
     }
 
     public void cleanup() {
@@ -39,7 +42,6 @@ public class SceneRenderer {
         uniformsMap.setUniform("textureSampler", 0);
 
         Collection<Model> models = scene.getModelMap().values();
-        TextureCache textureCache = scene.getTextureCache();
 
         for (Model model : models) {
             List<Entity> entities = model.getEntityList();

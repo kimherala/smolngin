@@ -35,14 +35,14 @@ public class TextRenderer {
         uniformsMap.createUniform("textColor");
     }
 
-    public void render(String fontName, String text, int fontSize, float x, float y) {
+    public void render(String fontName, String text, int fontSize, float x, float y, Color color) {
         Font font = fontCache.getFont(fontName, fontSize);
 
         shaderProgram.bind();
 
         uniformsMap.setUniform("projectionMatrix", projection);
         uniformsMap.setUniform("textureSampler", 0);
-        uniformsMap.setUniform("textColor", 1.0f, 1.0f, 1.0f);
+        uniformsMap.setUniform("textColor", color.getAsFloats());
 
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL30.glBindVertexArray(font.getVaoId());

@@ -66,6 +66,24 @@ public class Mesh {
         GL30.glBindVertexArray(0);
     }
 
+    public Mesh(float[] positions, int[] indices, int size) {
+        vertexCount = indices.length;
+
+        vaoId = GL30.glGenVertexArrays();
+        GL30.glBindVertexArray(vaoId);
+
+        vboIdList = new ArrayList<>();
+
+        // Position VBO
+        storeDataInAttributeList(0, size, positions);
+
+        // Indices VBO
+        bindIndicesBuffer(indices);
+
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+        GL30.glBindVertexArray(0);
+    }
+
     public void cleanup() {
         vboIdList.forEach(GL30::glDeleteBuffers);
         GL30.glDeleteVertexArrays(vaoId);

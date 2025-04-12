@@ -1,12 +1,16 @@
 package xyz.kimherala.smolngin.graphics;
 
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.stb.STBImage;
+import xyz.kimherala.smolngin.ResourceLoader;
 import xyz.kimherala.smolngin.game.Game;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -27,6 +31,8 @@ public class Window {
         this.title = title;
         this.width = width;
         this.height = height;
+
+        ResourceLoader resourceLoader = new ResourceLoader().getInstance();
 
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
@@ -88,7 +94,7 @@ public class Window {
         // Make the OpenGL context current
         glfwMakeContextCurrent(this.window);
         // Enable v-sync
-        glfwSwapInterval(0);
+        glfwSwapInterval(1);
 
         GL.createCapabilities();
 

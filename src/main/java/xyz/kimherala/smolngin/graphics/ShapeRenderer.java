@@ -26,9 +26,9 @@ public class ShapeRenderer {
         GL30.glBindVertexArray(vao);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
 
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, Float.BYTES * 6 * 4, GL15.GL_DYNAMIC_DRAW);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, Float.BYTES * 6 * 2, GL15.GL_DYNAMIC_DRAW);
         GL20.glEnableVertexAttribArray(0);
-        GL20.glVertexAttribPointer(0, 4, GL11.GL_FLOAT, false, 0, 0);
+        GL20.glVertexAttribPointer(0, 2, GL11.GL_FLOAT, false, 0, 0);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL30.glBindVertexArray(0);
@@ -46,11 +46,11 @@ public class ShapeRenderer {
         uniformsMap.createUniform("shapeColor");
     }
 
-    public void render(float x, float y, int width, int height) {
+    public void render(float x, float y, int width, int height, Color color) {
         shaderProgram.bind();
 
         uniformsMap.setUniform("projectionMatrix", projection);
-        uniformsMap.setUniform("shapeColor", 1.0f, 1.0f, 1.0f);
+        uniformsMap.setUniform("shapeColor", color.getAsFloats());
 
         GL30.glBindVertexArray(vao);
 
@@ -64,13 +64,13 @@ public class ShapeRenderer {
         float h = height * scale;
 
         float[] vertices = new float[]{
-                xpos, ypos + h, 0.0f, 0.0f,
-                xpos, ypos, 0.0f, 1.0f,
-                xpos + w, ypos, 1.0f, 1.0f,
+                xpos, ypos + h,
+                xpos, ypos,
+                xpos + w, ypos,
 
-                xpos, ypos + h, 0.0f, 0.0f,
-                xpos + w, ypos, 1.0f, 1.0f,
-                xpos + w, ypos + h, 1.0f, 0.0f
+                xpos, ypos + h,
+                xpos + w, ypos,
+                xpos + w, ypos + h,
         };
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);

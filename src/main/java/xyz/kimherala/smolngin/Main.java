@@ -1,7 +1,6 @@
 package xyz.kimherala.smolngin;
 
 import xyz.kimherala.smolngin.game.Game;
-import xyz.kimherala.smolngin.graphics.Renderer;
 import xyz.kimherala.smolngin.graphics.Window;
 
 public class Main {

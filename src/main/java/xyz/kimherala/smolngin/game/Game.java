@@ -11,9 +11,11 @@ import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 public class Game implements ApplicationInterface {
     private final Window window;
-    private final Renderer renderer;
+    private final TextureCache textureCache;
+    private final SceneRenderer sceneRenderer;
     private final TextRenderer textRenderer;
     private final ShapeRenderer shapeRenderer;
+    private final SpriteRenderer spriteRenderer;
     private FontCache fontCache;
     private final List<Entity> cubes;
     private final Scene scene;
@@ -23,11 +25,15 @@ public class Game implements ApplicationInterface {
     private int ticks;
     private int ticksInSec;
 
+    private static final Color WHITE = Color.hsl(40f, 0.9f, 0.5f);
+
     public Game(Window window) {
         this.window = window;
-        renderer = new Renderer();
+        textureCache = new TextureCache();
+        sceneRenderer = new SceneRenderer(textureCache);
         textRenderer = new TextRenderer();
         shapeRenderer = new ShapeRenderer();
+        spriteRenderer = new SpriteRenderer();
 
         float[] positions = new float[]{
                 // V0
@@ -126,7 +132,7 @@ public class Game implements ApplicationInterface {
 
         scene = new Scene(window.getWidth(), window.getHeight());
 
-        Texture texture = scene.getTextureCache().createTexture(null);
+        Texture texture = textureCache.createTexture(null);
         Material material = new Material();
 
         material.setTexturePath(texture.getTexturePath());
@@ -152,9 +158,10 @@ public class Game implements ApplicationInterface {
 
     public void cleanup() {
         scene.cleanup();
-        renderer.cleanup();
+        sceneRenderer.cleanup();
         textRenderer.cleanup();
         shapeRenderer.cleanup();
+        spriteRenderer.cleanup();
     }
 
     public void update(float dt) {
@@ -163,6 +170,7 @@ public class Game implements ApplicationInterface {
             scene.resize(window.getWidth(), window.getHeight());
             textRenderer.resize(window.getWidth(), window.getHeight());
             shapeRenderer.resize(window.getWidth(), window.getHeight());
+            spriteRenderer.resize(window.getWidth(), window.getHeight());
             window.setResized(false);
         }
 
@@ -182,17 +190,18 @@ public class Game implements ApplicationInterface {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        renderer.render(this.scene);
+        sceneRenderer.render(this.scene);
+        spriteRenderer.render(0, 200, 64, 64, 0.0f + 0.0625f,0.0f,0.0625f,0.0625f);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        textRenderer.render("Fontin-Regular", "FPS: " + fps, 20,0, window.getHeight()-20);
-        textRenderer.render("Fontin-Regular", "Tick: " + ticksInSec, 20, 0, window.getHeight()-40);
+        textRenderer.render("Fontin-Regular", "FPS: " + fps, 20,0, window.getHeight()-20, WHITE);
+        textRenderer.render("Fontin-Regular", "Tick: " + ticksInSec, 20, 0, window.getHeight()-40, WHITE);
         GL11.glDisable(GL11.GL_BLEND);
 
-        shapeRenderer.render(0, 0, 100, 100);
-        shapeRenderer.render(window.getWidth()-100, window.getHeight()-100, 100, 100);
+        shapeRenderer.render(0, 0, 100, 100, WHITE);
+        shapeRenderer.render(window.getWidth()-100, window.getHeight()-100, 100, 100, WHITE);
 
         glfwSwapBuffers(window.getWindow()); // swap the color buffers
     }
@@ -229,7 +238,7 @@ public class Game implements ApplicationInterface {
                 ticks++;
             }
 
-            if (frames >= 1000) {
+            if (frames >= 100) {
                 fps = (int) (frames / (currentTime - startTime));
                 ticksInSec = (int) (ticks / (currentTime - startTime));
                 startTime = currentTime;

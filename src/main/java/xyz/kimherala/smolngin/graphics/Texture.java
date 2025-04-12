@@ -14,11 +14,6 @@ public class Texture {
     private int textureId;
     private final String texturePath;
 
-    public Texture(int width, int height, ByteBuffer buffer) {
-        this.texturePath = "";
-        generateTexture(width, height, buffer);
-    }
-
     public Texture(String texturePath) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             this.texturePath = texturePath;
