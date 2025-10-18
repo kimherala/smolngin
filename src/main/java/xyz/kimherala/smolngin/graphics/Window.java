@@ -25,6 +25,12 @@ public class Window {
     private String title;
     private int width;
     private int height;
+    private int windowWidth;
+    private int windowHeight;
+    private int framebufferWidth;
+    private int framebufferHeight;
+    private float currentScaleX;
+    private float currentScaleY;
     boolean resized = false;
 
     public Window(String title, int width, int height) {
@@ -64,32 +70,65 @@ public class Window {
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
         });
 
-        glfwSetWindowSizeCallback(this.window, (window, widthNew, heightNew) -> {
+        glfwSetWindowSizeCallback(window, (window, widthNew, heightNew) -> {
             this.width = widthNew;
             this.height = heightNew;
             this.setResized(true);
+
+            try (MemoryStack stack = stackPush()) {
+                IntBuffer pWidth = stack.mallocInt(1); // int*
+                IntBuffer pHeight = stack.mallocInt(1); // int*
+
+                // Get the window size passed to glfwCreateWindow
+                glfwGetWindowSize(window, pWidth, pHeight);
+
+                this.windowWidth = pWidth.get(0);
+                this.windowHeight = pHeight.get(0);
+            }
+
+            this.currentScaleX = (float)this.framebufferWidth / this.windowWidth;
+            this.currentScaleY = (float)this.framebufferHeight / this.windowHeight;
+        });
+
+        glfwSetFramebufferSizeCallback(window, (window, widthNew, heightNew) -> {
+            this.setResized(true);
+
+            try (MemoryStack stack = stackPush()) {
+                IntBuffer fWidth = stack.mallocInt(1); // int*
+                IntBuffer fHeight = stack.mallocInt(1); // int*
+
+                // Get the window size passed to glfwCreateWindow
+                glfwGetFramebufferSize(window, fWidth, fHeight);
+
+                this.framebufferWidth = fWidth.get(0);
+                this.framebufferHeight = fHeight.get(0);
+            }
+
+            this.currentScaleX = (float)this.framebufferWidth / this.windowWidth;
+            this.currentScaleY = (float)this.framebufferHeight / this.windowHeight;
         });
 
         // Get the thread stack and push a new frame
         try (MemoryStack stack = stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1); // int*
             IntBuffer pHeight = stack.mallocInt(1); // int*
+            IntBuffer fWidth = stack.mallocInt(1); // int*
+            IntBuffer fHeight = stack.mallocInt(1); // int*
 
             // Get the window size passed to glfwCreateWindow
-            glfwGetWindowSize(this.window, pWidth, pHeight);
+            glfwGetWindowSize(window, pWidth, pHeight);
 
-            // Get the resolution of the primary monitor
-            GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+            // Get framebuffer size in pixels
+            glfwGetFramebufferSize(window, fWidth, fHeight);
 
-            /*
-            // Center the window
-            glfwSetWindowPos(
-                    this.window,
-                    (vidmode.width() - pWidth.get(0)) / 2,
-                    (vidmode.height() - pHeight.get(0)) / 2
-            );
-             */
-        } // the stack frame is popped automatically
+            this.windowWidth = pWidth.get(0);
+            this.windowHeight = pHeight.get(0);
+            this.framebufferWidth = fWidth.get(0);
+            this.framebufferHeight = fHeight.get(0);
+        }
+
+        this.currentScaleX = (float)this.framebufferWidth / this.windowWidth;
+        this.currentScaleY = (float)this.framebufferHeight / this.windowHeight;
 
         // Make the OpenGL context current
         glfwMakeContextCurrent(this.window);
@@ -118,6 +157,14 @@ public class Window {
 
     public int getHeight() {
         return height;
+    }
+
+    public float getWidthWithScale() {
+        return width*currentScaleX;
+    }
+
+    public float getHeightWithScale() {
+        return height*currentScaleY;
     }
 
     public boolean isResized() {

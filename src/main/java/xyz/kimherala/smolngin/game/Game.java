@@ -166,7 +166,7 @@ public class Game implements ApplicationInterface {
 
     public void update(float dt) {
         if (window.isResized() ) {
-            GL11.glViewport(0, 0, window.getWidth(), window.getHeight());
+            GL11.glViewport(0, 0, (int)(window.getWidthWithScale()), (int)(window.getHeightWithScale()));
             scene.resize(window.getWidth(), window.getHeight());
             textRenderer.resize(window.getWidth(), window.getHeight());
             shapeRenderer.resize(window.getWidth(), window.getHeight());
